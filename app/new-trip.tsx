@@ -6,13 +6,16 @@ import {
   ScrollView,
   Alert,
   Platform,
+  TextInput,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import HeaderLogo from "../components/HeaderLogo";
 import { useTheme } from "./context/ThemeContext";
 import FormField from "../components/FormField";
 import FormSelectField from "../components/FormSelectField";
+import DateTimeField from "../components/DateTimeField";
 
 export default function NewTrip() {
   const [start, setStart] = useState("");
@@ -22,6 +25,12 @@ export default function NewTrip() {
   const [startOdometer, setStartOdometer] = useState("");
   const [endOdometer, setEndOdometer] = useState("");
   const [vehicleList, setVehicleList] = useState<string[]>([]);
+
+  const [startTime, setStartTime] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date());
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const router = useRouter();
@@ -59,7 +68,9 @@ export default function NewTrip() {
       startOdometer,
       endOdometer,
       miles: milesDriven(),
-      date: new Date().toLocaleString(),
+      startTime: startTime.toLocaleString(),
+      endTime: endTime.toLocaleString(),
+      dateLogged: new Date().toLocaleString(),
     };
 
     try {
@@ -76,6 +87,8 @@ export default function NewTrip() {
       setVehicle("");
       setStartOdometer("");
       setEndOdometer("");
+      setStartTime(new Date());
+      setEndTime(new Date());
     } catch (err) {
       Alert.alert("Error", "Failed to save trip.");
     }
@@ -92,7 +105,7 @@ export default function NewTrip() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: isDark ? "#000" : "#f2f2f7", // Proper iOS grouped background
+        backgroundColor: isDark ? "#000" : "#f2f2f7",
         padding: 24,
       }}
     >
@@ -109,7 +122,7 @@ export default function NewTrip() {
         Log New Trip
       </Text>
 
-      {/* Section header */}
+      {/* Section Header */}
       <Text
         style={{
           fontSize: 13,
@@ -184,6 +197,17 @@ export default function NewTrip() {
           keyboardType="numeric"
         />
 
+        <DateTimeField
+          label="Start Date/Time"
+          value={startTime}
+          onChange={setStartTime}
+        />
+        <DateTimeField
+          label="End Date/Time"
+          value={endTime}
+          onChange={setEndTime}
+        />
+
         <FormField
           label="Miles Driven (Auto-calculated)"
           value={milesDriven()}
@@ -191,7 +215,7 @@ export default function NewTrip() {
         />
       </View>
 
-      {/* Actions Grouped */}
+      {/* Actions */}
       <Text
         style={{
           fontSize: 13,
@@ -240,9 +264,7 @@ export default function NewTrip() {
 
         <Pressable
           onPress={() => router.replace("/home")}
-          style={{
-            padding: 16,
-          }}
+          style={{ padding: 16 }}
         >
           <Text
             style={{
@@ -256,6 +278,31 @@ export default function NewTrip() {
           </Text>
         </Pressable>
       </View>
+
+      {/* Native Pickers */}
+      {Platform.OS !== "web" && showStartPicker && (
+        <DateTimePicker
+          value={startTime}
+          mode="datetime"
+          display="default"
+          onChange={(_, date) => {
+            setShowStartPicker(false);
+            if (date) setStartTime(date);
+          }}
+        />
+      )}
+
+      {Platform.OS !== "web" && showEndPicker && (
+        <DateTimePicker
+          value={endTime}
+          mode="datetime"
+          display="default"
+          onChange={(_, date) => {
+            setShowEndPicker(false);
+            if (date) setEndTime(date);
+          }}
+        />
+      )}
     </ScrollView>
   );
 }
