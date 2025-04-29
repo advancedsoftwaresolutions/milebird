@@ -6,6 +6,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { Text as RNText, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { ThemeProvider } from "./context/ThemeContext";
 
 // Web needs this patch to avoid Text constructor errors
 if (typeof global !== "undefined" && typeof global.Text === "undefined") {
@@ -27,9 +28,8 @@ export default function Layout() {
   }
 
   return (
-    <>
-      <StatusBar style="auto" />
+    <ThemeProvider>
       <Slot />
-    </>
+    </ThemeProvider>
   );
 }
