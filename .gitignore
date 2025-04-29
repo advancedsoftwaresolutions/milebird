@@ -1,0 +1,62 @@
+# Node modules
+node_modules/
+
+# Expo specific
+.expo/
+.expo-shared/
+
+# Build outputs
+dist/
+web-build/
+build/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# VSCode settings
+.vscode/
+
+# macOS specific
+*.DS_Store
+
+# Expo Router cache
+.expo/
+
+# Metro bundler cache
+metro-cache/
+
+# Expo managed files
+*.tar.gz
+
+# Expo/React Native temp
+coverage/
+
+# Package locks (optional, if you prefer yarn or pnpm over npm)
+package-lock.json
+
+# IDE settings
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# Tailwind generated file (optional if using JIT watcher)
+.tailwind/
+
+# Temporary system files
+*.swp
+*.swo
+*.bak
+*.tmp
