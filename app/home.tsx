@@ -30,7 +30,9 @@ export default function HomeScreen() {
   ];
 
   const handlePress = (route: string, anim: Animated.Value) => {
-    Haptics.selectionAsync();
+    if (Platform.OS !== "web") {
+      Haptics.selectionAsync();
+    }
     Animated.sequence([
       Animated.timing(anim, {
         toValue: 6,

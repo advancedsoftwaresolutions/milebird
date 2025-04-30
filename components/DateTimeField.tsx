@@ -8,6 +8,7 @@ import {
   useColorScheme,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Ionicons } from "@expo/vector-icons";
 
 type DateTimeFieldProps = {
   label: string;
@@ -34,7 +35,7 @@ export default function DateTimeField({
   const baseTextColor = isDark ? "#e5e5ea" : "#374151";
   const baseBorderColor = isDark ? "#3a3a3c" : "#d1d5db";
   const baseBackground = isDark ? "#2c2c2e" : "#f9fafb";
-  const labelColor = isDark ? "#8e8e93" : "#6b7280";
+  const labelColor = isDark ? "#8e8e93" : "#6e6e73";
 
   const handleNow = () => {
     const now = new Date();
@@ -47,19 +48,20 @@ export default function DateTimeField({
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
-          alignItems: "baseline",
+          alignItems: "center",
+          marginBottom: 4,
         }}
       >
         <Text
           style={{
             color: labelColor,
             fontSize: 14,
-            marginBottom: 4,
             fontWeight: "500",
           }}
         >
           {label}
         </Text>
+
         <Pressable onPress={handleNow}>
           <Text
             style={{
@@ -104,6 +106,9 @@ export default function DateTimeField({
               paddingHorizontal: 16,
               borderWidth: 1,
               borderColor: baseBorderColor,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
             <Text
@@ -115,6 +120,12 @@ export default function DateTimeField({
             >
               {formatted}
             </Text>
+
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={isDark ? "#aaa" : "#6b7280"}
+            />
           </Pressable>
 
           {showPicker && (

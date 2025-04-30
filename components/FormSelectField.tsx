@@ -1,4 +1,3 @@
-// components/FormSelectField.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -19,6 +18,7 @@ type Props = {
   selectedValue: string;
   onValueChange: (value: string) => void;
   options: Option[];
+  hasError?: boolean;
 };
 
 export default function FormSelectField({
@@ -26,6 +26,7 @@ export default function FormSelectField({
   selectedValue,
   onValueChange,
   options,
+  hasError = false,
 }: Props) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -33,6 +34,8 @@ export default function FormSelectField({
 
   const selectedLabel =
     options.find((opt) => opt.value === selectedValue)?.label || "Select";
+
+  const borderColor = hasError ? "#ef4444" : isDark ? "#3a3a3c" : "#d1d5db";
 
   return (
     <View style={{ marginBottom: 16 }}>
@@ -51,7 +54,7 @@ export default function FormSelectField({
         onPress={() => setVisible(true)}
         style={{
           borderWidth: 1,
-          borderColor: isDark ? "#3a3a3c" : "#d1d5db",
+          borderColor,
           backgroundColor: isDark ? "#2c2c2e" : "#f9fafb",
           borderRadius: 12,
           paddingVertical: 14,

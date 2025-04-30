@@ -1,4 +1,3 @@
-// components/FormField.tsx
 import React, { useState } from "react";
 import { View, Text, TextInput, Platform } from "react-native";
 import { useTheme } from "../app/context/ThemeContext";
@@ -10,6 +9,7 @@ type Props = {
   placeholder?: string;
   keyboardType?: "default" | "numeric" | "email-address" | "decimal-pad";
   editable?: boolean;
+  hasError?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
 };
@@ -21,6 +21,7 @@ export default function FormField({
   placeholder,
   keyboardType = "default",
   editable = true,
+  hasError = false,
   onFocus,
   onBlur,
 }: Props) {
@@ -28,7 +29,13 @@ export default function FormField({
   const isDark = theme === "dark";
   const [isFocused, setIsFocused] = useState(false);
 
-  const borderColor = isFocused ? "#007aff" : isDark ? "#3a3a3c" : "#d1d5db";
+  const borderColor = hasError
+    ? "#ef4444"
+    : isFocused
+    ? "#007aff"
+    : isDark
+    ? "#3a3a3c"
+    : "#d1d5db";
 
   return (
     <View style={{ marginBottom: 16 }}>

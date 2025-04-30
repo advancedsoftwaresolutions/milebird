@@ -1,14 +1,14 @@
+// app/_layout.tsx (or layout.tsx)
 import { Slot } from "expo-router";
 import {
   useFonts,
   Inter_400Regular,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Text as RNText, View } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { ThemeProvider } from "./context/ThemeContext";
 
-// Web needs this patch to avoid Text constructor errors
 if (typeof global !== "undefined" && typeof global.Text === "undefined") {
   global.RNText = RNText;
 }
@@ -28,8 +28,10 @@ export default function Layout() {
   }
 
   return (
-    <ThemeProvider>
-      <Slot />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <Slot />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

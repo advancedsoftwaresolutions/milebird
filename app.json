@@ -2,6 +2,20 @@
   "expo": {
     "name": "MileBird",
     "slug": "milebird",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "bundleIdentifier": "com.frankcamp.milebird",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "package": "com.frankcamp.milebird"
+    }
   }
 }

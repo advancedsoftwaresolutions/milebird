@@ -6,7 +6,6 @@ import {
   ScrollView,
   Alert,
   Platform,
-  TextInput,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -31,6 +30,15 @@ export default function NewTrip() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
+  const [errors, setErrors] = useState({
+    start: false,
+    destination: false,
+    purpose: false,
+    vehicle: false,
+    startOdometer: false,
+    endOdometer: false,
+  });
+
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const router = useRouter();
@@ -42,17 +50,26 @@ export default function NewTrip() {
     })();
   }, []);
 
+  const milesDriven = () => {
+    const startVal = parseFloat(startOdometer);
+    const endVal = parseFloat(endOdometer);
+    if (isNaN(startVal) || isNaN(endVal)) return "";
+    return (endVal - startVal).toFixed(1);
+  };
+
   const saveTrip = async () => {
-    if (
-      !start ||
-      !destination ||
-      !purpose ||
-      !vehicle ||
-      !startOdometer ||
-      !endOdometer ||
-      isNaN(Number(startOdometer)) ||
-      isNaN(Number(endOdometer))
-    ) {
+    const newErrors = {
+      start: !start,
+      destination: !destination,
+      purpose: !purpose,
+      vehicle: !vehicle,
+      startOdometer: !startOdometer || isNaN(Number(startOdometer)),
+      endOdometer: !endOdometer || isNaN(Number(endOdometer)),
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some((v) => v)) {
       Alert.alert(
         "Missing or Invalid Input",
         "Please fill out all fields correctly."
@@ -61,6 +78,7 @@ export default function NewTrip() {
     }
 
     const trip = {
+      id: Math.random().toString(36).substring(2, 10),
       start,
       destination,
       purpose,
@@ -73,32 +91,29 @@ export default function NewTrip() {
       dateLogged: new Date().toLocaleString(),
     };
 
-    try {
-      const existing = await AsyncStorage.getItem("trips");
-      const parsed = existing ? JSON.parse(existing) : [];
-      parsed.push(trip);
-      await AsyncStorage.setItem("trips", JSON.stringify(parsed));
-      Alert.alert("Saved", "Your trip has been logged.");
+    const existing = await AsyncStorage.getItem("trips");
+    const parsed = existing ? JSON.parse(existing) : [];
+    parsed.push(trip);
+    await AsyncStorage.setItem("trips", JSON.stringify(parsed));
 
-      // Reset form
-      setStart("");
-      setDestination("");
-      setPurpose("");
-      setVehicle("");
-      setStartOdometer("");
-      setEndOdometer("");
-      setStartTime(new Date());
-      setEndTime(new Date());
-    } catch (err) {
-      Alert.alert("Error", "Failed to save trip.");
-    }
-  };
+    Alert.alert("Saved", "Your trip has been logged.");
 
-  const milesDriven = () => {
-    const startVal = parseFloat(startOdometer);
-    const endVal = parseFloat(endOdometer);
-    if (isNaN(startVal) || isNaN(endVal)) return "";
-    return (endVal - startVal).toFixed(1);
+    setStart("");
+    setDestination("");
+    setPurpose("");
+    setVehicle("");
+    setStartOdometer("");
+    setEndOdometer("");
+    setStartTime(new Date());
+    setEndTime(new Date());
+    setErrors({
+      start: false,
+      destination: false,
+      purpose: false,
+      vehicle: false,
+      startOdometer: false,
+      endOdometer: false,
+    });
   };
 
   return (
@@ -122,20 +137,6 @@ export default function NewTrip() {
         Log New Trip
       </Text>
 
-      {/* Section Header */}
-      <Text
-        style={{
-          fontSize: 13,
-          color: isDark ? "#8e8e93" : "#6e6e73",
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        Trip Details
-      </Text>
-
-      {/* Grouped Card */}
       <View
         style={{
           backgroundColor: isDark ? "#1c1c1e" : "#fff",
@@ -155,26 +156,28 @@ export default function NewTrip() {
           value={start}
           onChangeText={setStart}
           placeholder="e.g. Home"
+          hasError={errors.start}
         />
-
         <FormField
           label="Destination"
           value={destination}
           onChangeText={setDestination}
           placeholder="e.g. Client Office"
+          hasError={errors.destination}
         />
-
         <FormField
           label="Purpose"
           value={purpose}
           onChangeText={setPurpose}
           placeholder="e.g. Business Meeting"
+          hasError={errors.purpose}
         />
 
         <FormSelectField
           label="Vehicle"
           selectedValue={vehicle}
           onValueChange={setVehicle}
+          hasError={errors.vehicle}
           options={[
             { label: "Select Vehicle", value: "" },
             ...vehicleList.map((v) => ({ label: v, value: v })),
@@ -187,14 +190,15 @@ export default function NewTrip() {
           onChangeText={setStartOdometer}
           placeholder="e.g. 12034.5"
           keyboardType="numeric"
+          hasError={errors.startOdometer}
         />
-
         <FormField
           label="Ending Odometer"
           value={endOdometer}
           onChangeText={setEndOdometer}
           placeholder="e.g. 12054.9"
           keyboardType="numeric"
+          hasError={errors.endOdometer}
         />
 
         <DateTimeField
@@ -215,19 +219,6 @@ export default function NewTrip() {
         />
       </View>
 
-      {/* Actions */}
-      <Text
-        style={{
-          fontSize: 13,
-          color: isDark ? "#8e8e93" : "#6e6e73",
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        Actions
-      </Text>
-
       <View
         style={{
           backgroundColor: isDark ? "#1c1c1e" : "#fff",
@@ -236,10 +227,6 @@ export default function NewTrip() {
           marginBottom: 32,
           borderWidth: 1,
           borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
-          shadowColor: "#000",
-          shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
         }}
       >
         <Pressable
@@ -261,7 +248,6 @@ export default function NewTrip() {
             Save Trip
           </Text>
         </Pressable>
-
         <Pressable
           onPress={() => router.replace("/home")}
           style={{ padding: 16 }}
@@ -278,31 +264,6 @@ export default function NewTrip() {
           </Text>
         </Pressable>
       </View>
-
-      {/* Native Pickers */}
-      {Platform.OS !== "web" && showStartPicker && (
-        <DateTimePicker
-          value={startTime}
-          mode="datetime"
-          display="default"
-          onChange={(_, date) => {
-            setShowStartPicker(false);
-            if (date) setStartTime(date);
-          }}
-        />
-      )}
-
-      {Platform.OS !== "web" && showEndPicker && (
-        <DateTimePicker
-          value={endTime}
-          mode="datetime"
-          display="default"
-          onChange={(_, date) => {
-            setShowEndPicker(false);
-            if (date) setEndTime(date);
-          }}
-        />
-      )}
     </ScrollView>
   );
 }
