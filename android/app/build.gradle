@@ -83,9 +83,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.frankcamp.milebird'
+    namespace 'com.frankcamp.milemonkey'
     defaultConfig {
-        applicationId 'com.frankcamp.milebird'
+        applicationId 'com.frankcamp.milemonkey'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

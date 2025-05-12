@@ -1,6 +1,6 @@
-# 📍 MileBird
+# 📍 MileMonkey
 
-**MileBird** is a clean, modern, iOS-native inspired mileage tracking app —
+**MileMonkey** is a clean, modern, iOS-native inspired mileage tracking app —
 designed to be the sleek, elegant successor to the original MileBug app.
 
 Built with **Expo**, **React Native**, and **iOS HIG** (Human Interface Guidelines) styling in mind.  
@@ -60,8 +60,8 @@ Seamlessly log trips, calculate mileage deductions, manage vehicles, and export 
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/milebird.git
-cd milebird
+git clone https://github.com/your-username/milemonkey.git
+cd milemonkey
 ```
 
 2. **Install dependencies**
@@ -112,7 +112,7 @@ Feel free to modify, improve, and extend it.
 
 # 🌟 Final Notes
 
-- **MileBird** was designed from day one to match **Apple's Human Interface Guidelines**.
+- **MileMonkey** was designed from day one to match **Apple's Human Interface Guidelines**.
 - Zero external API dependencies.
 - Fully works offline.
 - **Lightweight**, **fast**, and **beautiful**.

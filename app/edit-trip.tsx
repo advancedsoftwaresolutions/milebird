@@ -14,6 +14,7 @@ import { useTheme } from "./context/ThemeContext";
 import FormField from "../components/FormField";
 import FormSelectField from "../components/FormSelectField";
 import DateTimeField from "../components/DateTimeField";
+import { Ionicons } from "@expo/vector-icons";
 
 type Trip = {
   id: string;
@@ -27,6 +28,45 @@ type Trip = {
   startDateTime: string;
   endDateTime: string;
 };
+
+const FormSection = ({ children }: { children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  return (
+    <View
+      style={{
+        marginBottom: 24,
+        backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: isDark ? "#2c2c2e" : "#2C3E50",
+        shadowColor: "#000",
+        shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 1 },
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+const SectionTitle = ({ icon, text }: { icon: string; text: string }) => (
+  <View
+    style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+  >
+    <Ionicons
+      name={icon}
+      size={16}
+      color="#9ca3af"
+      style={{ marginRight: 6 }}
+    />
+    <Text style={{ fontSize: 14, fontWeight: "600", color: "#9ca3af" }}>
+      {text}
+    </Text>
+  </View>
+);
 
 export default function EditTrip() {
   const router = useRouter();
@@ -78,7 +118,7 @@ export default function EditTrip() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: isDark ? "#000" : "#f2f2f7",
+        backgroundColor: isDark ? "#000" : "#F4D35E",
         padding: 24,
       }}
     >
@@ -88,25 +128,18 @@ export default function EditTrip() {
         style={{
           fontSize: 24,
           fontWeight: "bold",
-          color: isDark ? "#fff" : "#1c1c1e",
+          color: isDark ? "#ffffff" : "#2C3E50",
           marginBottom: 24,
+          textAlign: "center",
         }}
       >
         Edit Trip
       </Text>
 
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 32,
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
-        }}
-      >
+      <FormSection>
+        <SectionTitle icon="location-outline" text="Where & Why" />
         <FormField
-          label="Start"
+          label="Starting Location"
           value={trip.start}
           onChangeText={(v) => updateTripField("start", v)}
         />
@@ -120,6 +153,10 @@ export default function EditTrip() {
           value={trip.purpose}
           onChangeText={(v) => updateTripField("purpose", v)}
         />
+      </FormSection>
+
+      <FormSection>
+        <SectionTitle icon="car-outline" text="Vehicle" />
         <FormSelectField
           label="Vehicle"
           selectedValue={trip.vehicle}
@@ -129,6 +166,10 @@ export default function EditTrip() {
             ...vehicleList.map((v) => ({ label: v, value: v })),
           ]}
         />
+      </FormSection>
+
+      <FormSection>
+        <SectionTitle icon="speedometer-outline" text="Odometer" />
         <FormField
           label="Start Odometer"
           value={trip.startOdometer}
@@ -139,31 +180,58 @@ export default function EditTrip() {
           value={trip.endOdometer}
           onChangeText={(v) => updateTripField("endOdometer", v)}
         />
+      </FormSection>
+
+      <FormSection>
+        <SectionTitle icon="time-outline" text="Timing" />
         <DateTimeField
-          label="Start Time"
+          label="Start Date/Time"
           value={new Date(trip.startDateTime)}
           onChange={(d) => updateTripField("startDateTime", d.toISOString())}
         />
         <DateTimeField
-          label="End Time"
+          label="End Date/Time"
           value={new Date(trip.endDateTime)}
           onChange={(d) => updateTripField("endDateTime", d.toISOString())}
         />
-      </View>
+      </FormSection>
 
-      <Pressable
-        onPress={saveChanges}
-        style={{
-          padding: 16,
-          backgroundColor: "#007aff",
-          borderRadius: 12,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
-          Save Changes
-        </Text>
-      </Pressable>
+      <FormSection>
+        <Pressable
+          onPress={saveChanges}
+          style={{
+            paddingVertical: 16,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              color: "#007aff",
+            }}
+          >
+            Save Changes
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.replace("/history")}
+          style={{
+            paddingVertical: 16,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              color: isDark ? "#e5e5ea" : "#6b7280",
+            }}
+          >
+            Cancel
+          </Text>
+        </Pressable>
+      </FormSection>
     </ScrollView>
   );
 }

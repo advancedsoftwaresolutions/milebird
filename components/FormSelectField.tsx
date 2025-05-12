@@ -9,7 +9,6 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "../app/context/ThemeContext";
 
 type Option = { label: string; value: string };
 
@@ -19,6 +18,7 @@ type Props = {
   onValueChange: (value: string) => void;
   options: Option[];
   hasError?: boolean;
+  isDark: boolean; // ✅ passed in instead of using useTheme
 };
 
 export default function FormSelectField({
@@ -27,9 +27,8 @@ export default function FormSelectField({
   onValueChange,
   options,
   hasError = false,
+  isDark,
 }: Props) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const [visible, setVisible] = useState(false);
 
   const selectedLabel =

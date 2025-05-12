@@ -1,21 +1,22 @@
 {
   "expo": {
-    "name": "MileBird",
-    "slug": "milebird",
+    "name": "MileMonkey",
+    "slug": "milemonkey",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2C3E50"
     },
     "ios": {
-      "bundleIdentifier": "com.frankcamp.milebird",
-      "buildNumber": "1.0.0"
+      "bundleIdentifier": "com.frankcamp.milemonkey",
+      "buildNumber": "1.0.0",
+      "supportsTablet": true
     },
     "android": {
-      "package": "com.frankcamp.milebird"
+      "package": "com.frankcamp.milemonkey"
     }
   }
 }

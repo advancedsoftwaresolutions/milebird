@@ -1,3 +1,4 @@
+// SettingsScreen.tsx
 import { useEffect, useState } from "react";
 import {
   View,
@@ -5,14 +6,55 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  Platform,
-  Switch,
   Alert,
+  Platform,
+  SafeAreaView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import HeaderLogo from "../components/HeaderLogo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "./context/ThemeContext";
+
+import { Ionicons } from "@expo/vector-icons";
+
+const FormSection = ({ children }: { children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  return (
+    <View
+      style={{
+        marginBottom: 24,
+        backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: isDark ? "#2c2c2e" : "#2C3E50",
+        shadowColor: "#000",
+        shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 1 },
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+const SectionTitle = ({ icon, text }: { icon: string; text: string }) => (
+  <View
+    style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+  >
+    <Ionicons
+      name={icon}
+      size={16}
+      color="#9ca3af"
+      style={{ marginRight: 6 }}
+    />
+    <Text style={{ fontSize: 14, fontWeight: "600", color: "#9ca3af" }}>
+      {text}
+    </Text>
+  </View>
+);
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
@@ -42,61 +84,27 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: isDark ? "#000" : "#f2f2f7", // System grouped background
-        padding: 24,
-      }}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: isDark ? "#000" : "#F4D35E" }}
     >
-      <HeaderLogo />
+      <ScrollView style={{ paddingHorizontal: 24, paddingBottom: 32 }}>
+        <HeaderLogo />
 
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: "bold",
-          color: isDark ? "#fff" : "#1c1c1e",
-          marginBottom: 24,
-        }}
-      >
-        Settings
-      </Text>
-
-      {/* Section: Mileage Settings */}
-      <Text
-        style={{
-          fontSize: 13,
-          color: isDark ? "#8e8e93" : "#6e6e73",
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        Mileage Settings
-      </Text>
-
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          marginBottom: 24,
-          overflow: "hidden",
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e5ea",
-          shadowColor: "#000",
-          shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
-        }}
-      >
-        {/* IRS Mileage Rate */}
-        <View
+        <Text
           style={{
-            padding: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: isDark ? "#2c2c2e" : "#e5e5ea",
+            fontSize: 24,
+            fontWeight: "bold",
+            color: isDark ? "#fff" : "#2C3E50",
+            marginBottom: 24,
+            textAlign: "center",
           }}
         >
+          Settings
+        </Text>
+
+        <FormSection>
+          <SectionTitle icon="speedometer-outline" text="Mileage Settings" />
+
           <Text
             style={{
               fontSize: 16,
@@ -114,6 +122,7 @@ export default function SettingsScreen() {
               paddingHorizontal: 16,
               fontSize: 16,
               color: isDark ? "#fff" : "#111827",
+              marginBottom: 16,
             }}
             keyboardType="decimal-pad"
             value={rate}
@@ -121,10 +130,7 @@ export default function SettingsScreen() {
             placeholder="e.g. 0.655"
             placeholderTextColor={isDark ? "#888" : "#aaa"}
           />
-        </View>
 
-        {/* Preferred Unit */}
-        <View style={{ padding: 16 }}>
           <Text
             style={{
               fontSize: 16,
@@ -142,7 +148,7 @@ export default function SettingsScreen() {
                 style={{
                   flex: 1,
                   backgroundColor:
-                    unit === u ? "#007aff" : isDark ? "#3a3a3c" : "#f2f2f2",
+                    unit === u ? "#EE6C4D" : isDark ? "#3a3a3c" : "#f2f2f2",
                   borderRadius: 8,
                   paddingVertical: 12,
                 }}
@@ -160,125 +166,73 @@ export default function SettingsScreen() {
               </Pressable>
             ))}
           </View>
-        </View>
-      </View>
+        </FormSection>
 
-      {/* Section: Display Settings */}
-      <Text
-        style={{
-          fontSize: 13,
-          color: isDark ? "#8e8e93" : "#6e6e73",
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        Display Options
-      </Text>
+        <FormSection>
+          <SectionTitle icon="contrast-outline" text="Display Options" />
 
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          marginBottom: 24,
-          overflow: "hidden",
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e5ea",
-          shadowColor: "#000",
-          shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
-        }}
-      >
-        {/* Toggle Dark Mode */}
-        <Pressable
-          onPress={toggleTheme}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: isDark ? "#2c2c2e" : "#e5e5ea",
-          }}
-        >
-          <Text
+          <Pressable
+            onPress={toggleTheme}
             style={{
-              fontSize: 16,
-              color: isDark ? "#e5e5ea" : "#1c1c1e",
-            }}
-          >
-            Toggle Dark Mode
-          </Text>
-          <View
-            style={{
-              width: 50,
-              height: 30,
-              backgroundColor: "#007aff",
-              borderRadius: 16,
+              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              justifyContent: "space-between",
+              paddingVertical: 8,
             }}
           >
-            <Text style={{ color: "white", fontWeight: "600" }}>
-              {theme === "dark" ? "On" : "Off"}
+            <Text
+              style={{ fontSize: 16, color: isDark ? "#e5e5ea" : "#1c1c1e" }}
+            >
+              Toggle Dark Mode
             </Text>
-          </View>
-        </Pressable>
+            <View
+              style={{
+                width: 50,
+                height: 30,
+                backgroundColor: "#EE6C4D",
+                borderRadius: 16,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "600" }}>
+                {isDark ? "On" : "Off"}
+              </Text>
+            </View>
+          </Pressable>
+        </FormSection>
 
-        {/* Save Settings */}
-        <Pressable
-          onPress={saveSettings}
-          style={{
-            padding: 16,
-          }}
-        >
-          <Text
+        <FormSection>
+          <Pressable
+            onPress={saveSettings}
             style={{
-              fontSize: 16,
-              color: "#007aff",
-              fontWeight: "600",
+              paddingVertical: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: isDark ? "#2c2c2e" : "#e5e7eb",
+              alignItems: "center",
             }}
           >
-            Save Settings
-          </Text>
-        </Pressable>
-      </View>
+            <Text style={{ fontSize: 16, fontWeight: "600", color: "#007aff" }}>
+              Save Settings
+            </Text>
+          </Pressable>
 
-      {/* Grouped Button */}
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          overflow: "hidden",
-          marginBottom: 32,
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
-          shadowColor: "#000",
-          shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
-        }}
-      >
-        <Pressable
-          onPress={() => router.replace("/home")}
-          style={{
-            paddingVertical: 16,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              color: "#007aff",
-            }}
+          <Pressable
+            onPress={() => router.replace("/home")}
+            style={{ paddingVertical: 16, alignItems: "center" }}
           >
-            Back to Home
-          </Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: isDark ? "#e5e5ea" : "#6b7280",
+              }}
+            >
+              Back to Home
+            </Text>
+          </Pressable>
+        </FormSection>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

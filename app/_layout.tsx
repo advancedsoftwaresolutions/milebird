@@ -19,13 +19,7 @@ export default function Layout() {
     Inter_700Bold,
   });
 
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <RNText>Loading fonts...</RNText>
-      </View>
-    );
-  }
+  if (!fontsLoaded) return null; // ✅ avoid mounting anything until ready
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -14,6 +14,46 @@ import HeaderLogo from "../components/HeaderLogo";
 import { useTheme } from "./context/ThemeContext";
 import { Swipeable } from "react-native-gesture-handler";
 import Toast from "react-native-root-toast";
+import { Ionicons } from "@expo/vector-icons";
+
+const FormSection = ({ children }: { children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  return (
+    <View
+      style={{
+        marginBottom: 24,
+        backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: isDark ? "#2c2c2e" : "#2C3E50",
+        shadowColor: "#000",
+        shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 1 },
+      }}
+    >
+      {children}
+    </View>
+  );
+};
+
+const SectionTitle = ({ icon, text }: { icon: string; text: string }) => (
+  <View
+    style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+  >
+    <Ionicons
+      name={icon}
+      size={16}
+      color="#9ca3af"
+      style={{ marginRight: 6 }}
+    />
+    <Text style={{ fontSize: 14, fontWeight: "600", color: "#9ca3af" }}>
+      {text}
+    </Text>
+  </View>
+);
 
 export default function ManageVehiclesScreen() {
   const [vehicles, setVehicles] = useState<string[]>([]);
@@ -67,52 +107,27 @@ export default function ManageVehiclesScreen() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: isDark ? "#000" : "#f2f2f7",
+        backgroundColor: isDark ? "#000" : "#F4D35E",
         padding: 24,
       }}
     >
       <HeaderLogo />
 
-      {/* Title */}
       <Text
         style={{
           fontSize: 24,
           fontWeight: "bold",
-          color: isDark ? "#fff" : "#1c1c1e",
+          color: isDark ? "#fff" : "#2C3E50",
           marginBottom: 24,
+          textAlign: "center",
         }}
       >
         Manage Vehicles
       </Text>
 
-      {/* Section Header */}
-      <Text
-        style={{
-          fontSize: 13,
-          color: isDark ? "#8e8e93" : "#6e6e73",
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        Add New Vehicle
-      </Text>
-
-      {/* Add Vehicle Card */}
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 32,
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
-          shadowColor: "#000",
-          shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
-        }}
-      >
+      {/* Add New Vehicle */}
+      <FormSection>
+        <SectionTitle icon="car-outline" text="Add New Vehicle" />
         <TextInput
           placeholder="e.g. Toyota Prius"
           placeholderTextColor={isDark ? "#888" : "#aaa"}
@@ -128,11 +143,10 @@ export default function ManageVehiclesScreen() {
             marginBottom: 16,
           }}
         />
-
         <Pressable
           onPress={addVehicle}
           style={{
-            backgroundColor: "#007aff",
+            backgroundColor: "#EE6C4D",
             paddingVertical: 14,
             borderRadius: 10,
             alignItems: "center",
@@ -143,52 +157,21 @@ export default function ManageVehiclesScreen() {
             shadowOffset: { width: 0, height: 2 },
           }}
         >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 16,
-              fontWeight: "600",
-            }}
-          >
+          <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
             Add Vehicle
           </Text>
         </Pressable>
-      </View>
+      </FormSection>
 
-      {/* Section Header */}
-      <Text
-        style={{
-          fontSize: 13,
-          color: isDark ? "#8e8e93" : "#6e6e73",
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        Your Vehicles
-      </Text>
-
-      {/* Vehicles List Card */}
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          overflow: "hidden",
-          marginBottom: 32,
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
-          shadowColor: "#000",
-          shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
-        }}
-      >
+      {/* Vehicle List */}
+      <FormSection>
+        <SectionTitle icon="list-outline" text="Your Vehicles" />
         {vehicles.length === 0 ? (
           <View style={{ paddingVertical: 20 }}>
             <Text
               style={{
                 fontSize: 16,
-                color: isDark ? "#888" : "#6b7280",
+                color: isDark ? "#888" : "#2C3E50",
                 textAlign: "center",
               }}
             >
@@ -227,7 +210,7 @@ export default function ManageVehiclesScreen() {
                   <Text
                     style={{
                       fontSize: 16,
-                      color: isDark ? "#fff" : "#1c1c1e",
+                      color: isDark ? "#fff" : "#2C3E50",
                       fontWeight: "500",
                     }}
                   >
@@ -238,41 +221,15 @@ export default function ManageVehiclesScreen() {
             );
           })
         )}
-      </View>
+      </FormSection>
 
-      {/* Actions Section */}
-      <Text
-        style={{
-          fontSize: 13,
-          color: isDark ? "#8e8e93" : "#6e6e73",
-          marginBottom: 8,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        Actions
-      </Text>
-
-      {/* Back to Home Button */}
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          overflow: "hidden",
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
-          shadowColor: "#000",
-          shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
-        }}
-      >
+      {/* Back to Home */}
+      <FormSection>
         <Pressable
           onPress={() => router.replace("/home")}
           style={{
             paddingVertical: 16,
             alignItems: "center",
-            justifyContent: "center",
           }}
         >
           <Text
@@ -285,7 +242,7 @@ export default function ManageVehiclesScreen() {
             Back to Home
           </Text>
         </Pressable>
-      </View>
+      </FormSection>
     </ScrollView>
   );
 }
