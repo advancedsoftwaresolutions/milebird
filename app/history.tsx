@@ -29,6 +29,14 @@ type Trip = {
   miles: string;
   startDateTime: string;
   endDateTime: string;
+  tripType?: string;
+};
+
+const IRS_RATES: Record<string, number> = {
+  Business: 0.7,
+  Medical: 0.21,
+  Moving: 0.21,
+  Charitable: 0.14,
 };
 
 export default function HistoryScreen() {
@@ -36,7 +44,6 @@ export default function HistoryScreen() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [irsRate, setIrsRate] = useState<number>(0.655);
 
   useEffect(() => {
     loadTrips();
@@ -44,12 +51,6 @@ export default function HistoryScreen() {
 
   const loadTrips = async () => {
     const data = await AsyncStorage.getItem("trips");
-    const savedRate = await AsyncStorage.getItem("irsRate");
-    if (savedRate) {
-      const rate = parseFloat(savedRate);
-      if (!isNaN(rate)) setIrsRate(rate);
-    }
-
     if (data) {
       let parsed: Trip[] = JSON.parse(data);
       parsed = parsed.map((t) => ({
@@ -73,6 +74,15 @@ export default function HistoryScreen() {
     return map;
   };
 
+  const getRateForType = (type?: string): number => {
+    const normalized = type?.toLowerCase() ?? "";
+    if (normalized === "business") return IRS_RATES["Business"];
+    if (normalized === "medical") return IRS_RATES["Medical"];
+    if (normalized === "moving") return IRS_RATES["Moving"];
+    if (normalized === "charitable") return IRS_RATES["Charitable"];
+    return IRS_RATES["Business"];
+  };
+
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
   const formatDateTime = (date: string) => new Date(date).toLocaleString();
@@ -88,11 +98,13 @@ export default function HistoryScreen() {
       "Miles",
       "Start Time",
       "End Time",
+      "Trip Type",
       "Deduction",
     ];
     const rows = trips.map((trip) => {
       const miles = parseFloat(trip.miles);
-      const deduction = isNaN(miles) ? 0 : miles * irsRate;
+      const rate = getRateForType(trip.tripType);
+      const deduction = isNaN(miles) ? 0 : miles * rate;
       return [
         trip.start,
         trip.destination,
@@ -103,6 +115,7 @@ export default function HistoryScreen() {
         trip.miles,
         trip.startDateTime,
         trip.endDateTime,
+        trip.tripType || "Business",
         deduction.toFixed(2),
       ].join(",");
     });
@@ -127,7 +140,8 @@ export default function HistoryScreen() {
 
   const TripRow = ({ trip }: { trip: Trip }) => {
     const anim = useRef(new Animated.Value(0)).current;
-    const deduction = parseFloat(trip.miles) * irsRate || 0;
+    const rate = getRateForType(trip.tripType);
+    const deduction = parseFloat(trip.miles) * rate || 0;
 
     const handlePress = () => {
       if (Platform.OS !== "web") Haptics.selectionAsync();
@@ -202,7 +216,7 @@ export default function HistoryScreen() {
                 color: isDark ? "#ccc" : "#374151",
               }}
             >
-              {trip.miles} mi · {trip.purpose} · {trip.vehicle}
+              {trip.miles} mi · {trip.tripType || "Business"} · {trip.vehicle}
             </Text>
             <Text
               style={{
@@ -250,7 +264,8 @@ export default function HistoryScreen() {
           .map(([year, yearTrips]) => {
             const total = yearTrips.reduce((sum, t) => {
               const m = parseFloat(t.miles);
-              return sum + (isNaN(m) ? 0 : m * irsRate);
+              const rate = getRateForType(t.tripType);
+              return sum + (isNaN(m) ? 0 : m * rate);
             }, 0);
 
             return (
@@ -317,10 +332,7 @@ export default function HistoryScreen() {
         >
           <Pressable
             onPress={() => router.replace("/home")}
-            style={{
-              padding: 16,
-              alignItems: "center",
-            }}
+            style={{ padding: 16, alignItems: "center" }}
           >
             <Text
               style={{

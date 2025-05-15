@@ -7,7 +7,7 @@ type DateTimeFieldProps = {
   label: string;
   value: Date;
   onChange: (date: Date) => void;
-  isDark: boolean; // ✅ passed from parent
+  isDark: boolean;
 };
 
 export default function DateTimeField({
@@ -28,7 +28,7 @@ export default function DateTimeField({
 
   const baseTextColor = isDark ? "#ffffff" : "#1c1c1e";
   const baseBorderColor = isDark ? "#2c2c2e" : "#2C3E50";
-  const baseBackground = isDark ? "#1c1c1e" : "#f9fafb";
+  const baseBackground = isDark ? "#1c1c1e" : "#ffffff";
   const labelColor = isDark ? "#9ca3af" : "#6b7280";
 
   const handleNow = () => {
@@ -46,23 +46,15 @@ export default function DateTimeField({
           marginBottom: 8,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Ionicons
-            name="time-outline"
-            size={16}
-            color={labelColor}
-            style={{ marginRight: 6 }}
-          />
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: "600",
-              color: labelColor,
-            }}
-          >
-            {label}
-          </Text>
-        </View>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "600",
+            color: isDark ? "#e5e5ea" : "#374151",
+          }}
+        >
+          {label}
+        </Text>
 
         <Pressable onPress={handleNow}>
           <Text
@@ -93,7 +85,11 @@ export default function DateTimeField({
             borderWidth: 1,
             borderColor: baseBorderColor,
             color: baseTextColor,
-            fontWeight: "500",
+            fontWeight: "400",
+            shadowColor: "#000",
+            shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 1 },
           }}
           placeholder="Enter date/time"
           placeholderTextColor={isDark ? "#666" : "#aaa"}

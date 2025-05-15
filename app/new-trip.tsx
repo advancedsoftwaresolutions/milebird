@@ -1,3 +1,4 @@
+// NewTrip.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -15,13 +16,13 @@ import FormField from "../components/FormField";
 import FormSelectField from "../components/FormSelectField";
 import DateTimeField from "../components/DateTimeField";
 import { Ionicons } from "@expo/vector-icons";
-import { TextInput } from "react-native-gesture-handler";
 
 export default function NewTrip() {
   const [start, setStart] = useState("");
   const [destination, setDestination] = useState("");
   const [purpose, setPurpose] = useState("");
   const [vehicle, setVehicle] = useState("");
+  const [tripType, setTripType] = useState("business");
 
   const [startOdometer, setStartOdometer] = useState("");
   const [endOdometer, setEndOdometer] = useState("");
@@ -58,6 +59,13 @@ export default function NewTrip() {
     [vehicleList]
   );
 
+  const tripTypeOptions = [
+    { label: "Business (70¢/mi)", value: "business" },
+    { label: "Medical (21¢/mi)", value: "medical" },
+    { label: "Moving (Military, 21¢/mi)", value: "moving" },
+    { label: "Charitable (14¢/mi)", value: "charitable" },
+  ];
+
   const milesDriven = () => {
     const startVal = parseFloat(startOdometer);
     const endVal = parseFloat(endOdometer);
@@ -91,6 +99,7 @@ export default function NewTrip() {
       destination,
       purpose,
       vehicle,
+      tripType,
       startOdometer,
       endOdometer,
       miles: milesDriven(),
@@ -110,6 +119,7 @@ export default function NewTrip() {
     setDestination("");
     setPurpose("");
     setVehicle("");
+    setTripType("business");
     setStartOdometer("");
     setEndOdometer("");
     setStartTime(new Date());
@@ -124,40 +134,48 @@ export default function NewTrip() {
     });
   };
 
-  const FormSection = ({ children }) => (
-    <View
-      style={{
-        marginBottom: 24,
-        backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: isDark ? "#2c2c2e" : "#2C3E50",
-        shadowColor: "#000",
-        shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
-        shadowRadius: 4,
-        shadowOffset: { width: 0, height: 1 },
-      }}
-    >
-      {children}
-    </View>
-  );
+  const SectionTitle = ({ icon, text }: { icon: string; text: string }) => {
+    const iconBackgrounds: Record<string, string> = {
+      "location-outline": "#fde68a",
+      "car-outline": "#fcd34d",
+      "speedometer-outline": "#bfdbfe",
+      "time-outline": "#c4b5fd",
+      "pricetag-outline": "#d1fae5",
+    };
 
-  const SectionTitle = ({ icon, text }) => (
-    <View
-      style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
-    >
-      <Ionicons
-        name={icon}
-        size={16}
-        color="#9ca3af"
-        style={{ marginRight: 6 }}
-      />
-      <Text style={{ fontSize: 14, fontWeight: "600", color: "#9ca3af" }}>
-        {text}
-      </Text>
-    </View>
-  );
+    return (
+      <View
+        style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+      >
+        <View
+          style={{
+            backgroundColor: iconBackgrounds[icon] || "#e5e7eb",
+            borderRadius: 999,
+            padding: 10,
+            marginRight: 12,
+            shadowColor: "#000",
+            shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 3,
+          }}
+        >
+          <Ionicons name={icon as any} size={16} color="#1f2937" />
+        </View>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: isDark ? "#e5e5ea" : "#374151",
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+          }}
+        >
+          {text}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <ScrollView
@@ -183,27 +201,15 @@ export default function NewTrip() {
         </Text>
       </View>
 
-      <TextInput
-        value={start}
-        onChangeText={setStart}
-        placeholder="Test Input"
-        style={{
-          backgroundColor: "#fff",
-          padding: 12,
-          marginBottom: 16,
-          borderColor: "#ccc",
-          borderWidth: 1,
-        }}
-      />
-
-      <FormSection>
+      {/* Where & Why */}
+      <View style={sectionBoxStyle(isDark)}>
         <SectionTitle icon="location-outline" text="Where & Why" />
         <FormField
           label="Starting Location"
           value={start}
           onChangeText={setStart}
           hasError={errors.start}
-          isDark={isDark} // ✅ pass down
+          isDark={isDark}
         />
         <FormField
           label="Destination"
@@ -219,9 +225,10 @@ export default function NewTrip() {
           hasError={errors.purpose}
           isDark={isDark}
         />
-      </FormSection>
+      </View>
 
-      <FormSection>
+      {/* Vehicle */}
+      <View style={sectionBoxStyle(isDark)}>
         <SectionTitle icon="car-outline" text="Vehicle" />
         <FormSelectField
           label="Vehicle"
@@ -229,11 +236,25 @@ export default function NewTrip() {
           onValueChange={setVehicle}
           hasError={errors.vehicle}
           options={vehicleOptions}
-          isDark={isDark} // ✅ pass down
+          isDark={isDark}
         />
-      </FormSection>
+      </View>
 
-      <FormSection>
+      {/* Trip Type */}
+      <View style={sectionBoxStyle(isDark)}>
+        <SectionTitle icon="pricetag-outline" text="Trip Type" />
+        <FormSelectField
+          label="Trip Type"
+          selectedValue={tripType}
+          onValueChange={setTripType}
+          hasError={false}
+          options={tripTypeOptions}
+          isDark={isDark}
+        />
+      </View>
+
+      {/* Odometer */}
+      <View style={sectionBoxStyle(isDark)}>
         <SectionTitle icon="speedometer-outline" text="Odometer" />
         <FormField
           label="Starting Odometer"
@@ -253,9 +274,10 @@ export default function NewTrip() {
           hasError={errors.endOdometer}
           isDark={isDark}
         />
-      </FormSection>
+      </View>
 
-      <FormSection>
+      {/* Timing */}
+      <View style={sectionBoxStyle(isDark)}>
         <SectionTitle icon="time-outline" text="Timing" />
         <DateTimeField
           label="Start Date/Time"
@@ -269,8 +291,9 @@ export default function NewTrip() {
           onChange={setEndTime}
           isDark={isDark}
         />
-      </FormSection>
+      </View>
 
+      {/* Summary */}
       <View
         style={{
           flexDirection: "row",
@@ -296,7 +319,8 @@ export default function NewTrip() {
         </Text>
       </View>
 
-      <FormSection>
+      {/* Actions */}
+      <View style={sectionBoxStyle(isDark)}>
         <Pressable
           onPress={saveTrip}
           style={{
@@ -331,7 +355,18 @@ export default function NewTrip() {
             Back to Home
           </Text>
         </Pressable>
-      </FormSection>
+      </View>
     </ScrollView>
   );
+}
+
+function sectionBoxStyle(isDark: boolean) {
+  return {
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: isDark ? "#2c2c2e" : "#2C3E50",
+    backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
+  };
 }

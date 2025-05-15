@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   ScrollView,
   Alert,
@@ -14,7 +13,6 @@ import { useRouter } from "expo-router";
 import HeaderLogo from "../components/HeaderLogo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "./context/ThemeContext";
-
 import { Ionicons } from "@expo/vector-icons";
 
 const FormSection = ({ children }: { children: React.ReactNode }) => {
@@ -40,34 +38,62 @@ const FormSection = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const SectionTitle = ({ icon, text }: { icon: string; text: string }) => (
-  <View
-    style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
-  >
-    <Ionicons
-      name={icon}
-      size={16}
-      color="#9ca3af"
-      style={{ marginRight: 6 }}
-    />
-    <Text style={{ fontSize: 14, fontWeight: "600", color: "#9ca3af" }}>
-      {text}
-    </Text>
-  </View>
-);
+const SectionTitle = ({ icon, text }: { icon: string; text: string }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  const iconBackgrounds: Record<string, string> = {
+    "speedometer-outline": "#fcd34d",
+    "contrast-outline": "#c4b5fd",
+  };
+
+  return (
+    <View
+      style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+    >
+      <View
+        style={{
+          backgroundColor: iconBackgrounds[icon] || "#e5e7eb",
+          borderRadius: 999,
+          padding: 10,
+          marginRight: 12,
+          shadowColor: "#000",
+          shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 3,
+        }}
+      >
+        <Ionicons
+          name={icon as any}
+          size={16}
+          color={isDark ? "#1f2937" : "#1f2937"}
+        />
+      </View>
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: "600",
+          color: isDark ? "#ffffff" : "#2C3E50",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+        }}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+};
 
 export default function SettingsScreen() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
   const router = useRouter();
-  const [rate, setRate] = useState("");
   const [unit, setUnit] = useState("mi");
 
   useEffect(() => {
     const loadSettings = async () => {
-      const storedRate = await AsyncStorage.getItem("mileageRate");
       const storedUnit = await AsyncStorage.getItem("preferredUnit");
-      if (storedRate) setRate(storedRate);
       if (storedUnit) setUnit(storedUnit);
     };
     loadSettings();
@@ -75,7 +101,6 @@ export default function SettingsScreen() {
 
   const saveSettings = async () => {
     try {
-      await AsyncStorage.setItem("mileageRate", rate);
       await AsyncStorage.setItem("preferredUnit", unit);
       Alert.alert("Saved", "Your settings have been saved.");
     } catch (error) {
@@ -103,74 +128,45 @@ export default function SettingsScreen() {
         </Text>
 
         <FormSection>
-          <SectionTitle icon="speedometer-outline" text="Mileage Settings" />
-
-          <Text
-            style={{
-              fontSize: 16,
-              color: isDark ? "#e5e5ea" : "#1c1c1e",
-              marginBottom: 8,
-            }}
-          >
-            IRS Mileage Rate ($/mile)
-          </Text>
-          <TextInput
-            style={{
-              backgroundColor: isDark ? "#2c2c2e" : "#f9fafb",
-              borderRadius: 10,
-              paddingVertical: 14,
-              paddingHorizontal: 16,
-              fontSize: 16,
-              color: isDark ? "#fff" : "#111827",
-              marginBottom: 16,
-            }}
-            keyboardType="decimal-pad"
-            value={rate}
-            onChangeText={setRate}
-            placeholder="e.g. 0.655"
-            placeholderTextColor={isDark ? "#888" : "#aaa"}
-          />
-
-          <Text
-            style={{
-              fontSize: 16,
-              color: isDark ? "#e5e5ea" : "#1c1c1e",
-              marginBottom: 8,
-            }}
-          >
-            Preferred Unit
-          </Text>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            {["mi", "km"].map((u) => (
-              <Pressable
-                key={u}
-                onPress={() => setUnit(u)}
+          <SectionTitle icon="speedometer-outline" text="2025 Mileage Rates" />
+          {[
+            { label: "Business", value: "70¢ per mile" },
+            { label: "Medical", value: "21¢ per mile" },
+            { label: "Moving (military only)", value: "21¢ per mile" },
+            { label: "Charitable", value: "14¢ per mile" },
+          ].map((item) => (
+            <View
+              key={item.label}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 8,
+              }}
+            >
+              <Text
                 style={{
-                  flex: 1,
-                  backgroundColor:
-                    unit === u ? "#EE6C4D" : isDark ? "#3a3a3c" : "#f2f2f2",
-                  borderRadius: 8,
-                  paddingVertical: 12,
+                  fontSize: 16,
+                  fontWeight: "500",
+                  color: isDark ? "#e5e5ea" : "#1c1c1e",
                 }}
               >
-                <Text
-                  style={{
-                    textAlign: "center",
-                    fontSize: 16,
-                    fontWeight: "500",
-                    color: unit === u ? "#fff" : isDark ? "#e5e5ea" : "#1c1c1e",
-                  }}
-                >
-                  {u === "mi" ? "Miles" : "Kilometers"}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+                {item.label}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "600",
+                  color: "#007aff",
+                }}
+              >
+                {item.value}
+              </Text>
+            </View>
+          ))}
         </FormSection>
 
         <FormSection>
           <SectionTitle icon="contrast-outline" text="Display Options" />
-
           <Pressable
             onPress={toggleTheme}
             style={{
@@ -200,6 +196,36 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </Pressable>
+        </FormSection>
+
+        <FormSection>
+          <SectionTitle icon="locate-outline" text="Distance Unit" />
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {["mi", "km"].map((u) => (
+              <Pressable
+                key={u}
+                onPress={() => setUnit(u)}
+                style={{
+                  flex: 1,
+                  backgroundColor:
+                    unit === u ? "#EE6C4D" : isDark ? "#3a3a3c" : "#f2f2f2",
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontSize: 16,
+                    fontWeight: "500",
+                    color: unit === u ? "#fff" : isDark ? "#e5e5ea" : "#1c1c1e",
+                  }}
+                >
+                  {u === "mi" ? "Miles" : "Kilometers"}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </FormSection>
 
         <FormSection>
