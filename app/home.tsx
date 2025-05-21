@@ -30,9 +30,7 @@ export default function HomeScreen() {
   ];
 
   const handlePress = (route: string, anim: Animated.Value) => {
-    if (Platform.OS !== "web") {
-      Haptics.selectionAsync();
-    }
+    if (Platform.OS !== "web") Haptics.selectionAsync();
     Animated.sequence([
       Animated.timing(anim, {
         toValue: 6,
@@ -60,7 +58,6 @@ export default function HomeScreen() {
   }) => {
     const anim = useRef(new Animated.Value(0)).current;
 
-    // Optional per-label icons
     const icons: Record<string, string> = {
       "Log New Trip": "car",
       "View Trip History": "time",
@@ -68,25 +65,26 @@ export default function HomeScreen() {
       "Manage Vehicles": "build",
     };
 
-    const iconBackgrounds: Record<string, string> = {
-      "Log New Trip": "#fde68a", // banana yellow
-      "View Trip History": "#bfdbfe", // light sky blue
-      "Settings & Mileage Rate": "#c4b5fd", // lavender
-      "Manage Vehicles": "#fcd34d", // warm amber
+    const gradients: Record<string, string[]> = {
+      "Log New Trip": ["#fde68a", "#facc15"],
+      "View Trip History": ["#bfdbfe", "#60a5fa"],
+      "Settings & Mileage Rate": ["#c4b5fd", "#8b5cf6"],
+      "Manage Vehicles": ["#fcd34d", "#f59e0b"],
     };
 
     const iconName = icons[label] || "ellipse";
+    const gradientColors = gradients[label] || ["#e5e7eb", "#d1d5db"];
 
     return (
       <Pressable
         onPress={() => handlePress(route, anim)}
         android_ripple={{ color: isDark ? "#333" : "#ccc" }}
         style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
           paddingHorizontal: 24,
-          paddingVertical: 18,
+          paddingVertical: 20,
           borderBottomWidth: isLast ? 0 : 1,
-          borderColor: isDark ? "#2c2c2e" : "#e0e0e0",
+          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
+          backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
@@ -95,35 +93,31 @@ export default function HomeScreen() {
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View
             style={{
-              backgroundColor:
-                iconBackgrounds[label] || (isDark ? "#2c2c2e" : "#f2f4f7"),
+              backgroundColor: gradientColors[0],
               borderRadius: 999,
               padding: 10,
               marginRight: 16,
-
-              // Shadow styles
               shadowColor: "#000",
               shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
               shadowRadius: 6,
               shadowOffset: { width: 0, height: 2 },
-              elevation: 3, // Android shadow
+              elevation: 3,
             }}
           >
-            <Ionicons
-              name={iconName as any}
-              size={18}
-              color={isDark ? "#1f2937" : "#1f2937"}
-            />
+            <Ionicons name={iconName as any} size={18} color="#1f2937" />
           </View>
-          <Text
-            style={{
-              color: isDark ? "#ffffff" : "#2C3E50",
-              fontSize: 17,
-              fontWeight: "600",
-            }}
-          >
-            {label}
-          </Text>
+          <View>
+            <Text
+              style={{
+                color: isDark ? "#ffffff" : "#2C3E50",
+                fontSize: 16,
+                fontWeight: "600",
+                marginBottom: 2,
+              }}
+            >
+              {label}
+            </Text>
+          </View>
         </View>
 
         <Animated.View style={{ transform: [{ translateX: anim }] }}>
@@ -139,33 +133,26 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: isDark ? "#000" : "#F4D35E", // system background
-      }}
+      style={{ flex: 1, backgroundColor: isDark ? "#000" : "#F4D35E" }}
     >
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={{ paddingVertical: 18, paddingHorizontal: 24 }}
-      >
-        {/* Header */}
+      <ScrollView style={{ paddingVertical: 18, paddingHorizontal: 24 }}>
         <HeaderLogo />
-
         <View style={{ alignItems: "center" }}>
           <Text
             style={{
-              fontSize: 24,
-              fontWeight: "bold",
+              fontSize: 26,
+              fontWeight: "800",
               color: isDark ? "#ffffff" : "#2C3E50",
               marginBottom: 24,
               textAlign: "center",
+              letterSpacing: 0.5,
             }}
           >
             Welcome back!
           </Text>
         </View>
 
-        {/* Section: Trips */}
+        {/* Trips Section */}
         <Text
           style={{
             fontSize: 13,
@@ -181,7 +168,7 @@ export default function HomeScreen() {
 
         <View
           style={{
-            backgroundColor: isDark ? "#1c1c1e" : "#2C3E50",
+            backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
             borderRadius: 12,
             marginBottom: 32,
             borderWidth: 1,
@@ -203,7 +190,7 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Section: Settings */}
+        {/* Settings Section */}
         <Text
           style={{
             fontSize: 13,
@@ -219,7 +206,7 @@ export default function HomeScreen() {
 
         <View
           style={{
-            backgroundColor: isDark ? "#1c1c1e" : "#2C3E50",
+            backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
             borderRadius: 12,
             marginBottom: 32,
             borderWidth: 1,

@@ -39,21 +39,48 @@ const FormSection = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const SectionTitle = ({ icon, text }: { icon: string; text: string }) => (
-  <View
-    style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
-  >
-    <Ionicons
-      name={icon}
-      size={16}
-      color="#9ca3af"
-      style={{ marginRight: 6 }}
-    />
-    <Text style={{ fontSize: 14, fontWeight: "600", color: "#9ca3af" }}>
-      {text}
-    </Text>
-  </View>
-);
+const SectionTitle = ({ icon, text }: { icon: string; text: string }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  const iconBackgrounds: Record<string, string> = {
+    "car-outline": "#fcd34d",
+    "list-outline": "#c4b5fd",
+  };
+
+  return (
+    <View
+      style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+    >
+      <View
+        style={{
+          backgroundColor: iconBackgrounds[icon] || "#e5e7eb",
+          borderRadius: 999,
+          padding: 10,
+          marginRight: 12,
+          shadowColor: "#000",
+          shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 3,
+        }}
+      >
+        <Ionicons name={icon as any} size={16} color="#1f2937" />
+      </View>
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: "600",
+          color: isDark ? "#ffffff" : "#2C3E50",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+        }}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+};
 
 export default function ManageVehiclesScreen() {
   const [vehicles, setVehicles] = useState<string[]>([]);
@@ -75,15 +102,12 @@ export default function ManageVehiclesScreen() {
   };
 
   const addVehicle = async () => {
-    if (!newVehicle.trim()) {
-      Alert.alert("Error", "Vehicle name cannot be empty.");
-      return;
-    }
-    if (vehicles.includes(newVehicle.trim())) {
-      Alert.alert("Duplicate", "This vehicle already exists.");
-      return;
-    }
-    const updated = [...vehicles, newVehicle.trim()];
+    const trimmed = newVehicle.trim();
+    if (!trimmed) return Alert.alert("Error", "Vehicle name cannot be empty.");
+    if (vehicles.includes(trimmed))
+      return Alert.alert("Duplicate", "This vehicle already exists.");
+
+    const updated = [...vehicles, trimmed];
     await saveVehicles(updated);
     setNewVehicle("");
 
@@ -115,11 +139,12 @@ export default function ManageVehiclesScreen() {
 
       <Text
         style={{
-          fontSize: 24,
-          fontWeight: "bold",
+          fontSize: 26,
+          fontWeight: "800",
           color: isDark ? "#fff" : "#2C3E50",
           marginBottom: 24,
           textAlign: "center",
+          letterSpacing: 0.5,
         }}
       >
         Manage Vehicles
@@ -191,7 +216,10 @@ export default function ManageVehiclesScreen() {
                   height: "100%",
                 }}
               >
-                <Text style={{ color: "white", fontWeight: "600" }}>
+                <Ionicons name="trash-outline" size={20} color="white" />
+                <Text
+                  style={{ color: "white", fontWeight: "600", marginTop: 4 }}
+                >
                   Delete
                 </Text>
               </Pressable>
@@ -205,6 +233,7 @@ export default function ManageVehiclesScreen() {
                     paddingHorizontal: 16,
                     borderBottomWidth: idx !== vehicles.length - 1 ? 1 : 0,
                     borderBottomColor: isDark ? "#2c2c2e" : "#e5e7eb",
+                    backgroundColor: isDark ? "#1c1c1e" : "#fff",
                   }}
                 >
                   <Text
@@ -227,10 +256,7 @@ export default function ManageVehiclesScreen() {
       <FormSection>
         <Pressable
           onPress={() => router.replace("/home")}
-          style={{
-            paddingVertical: 16,
-            alignItems: "center",
-          }}
+          style={{ paddingVertical: 16, alignItems: "center" }}
         >
           <Text
             style={{

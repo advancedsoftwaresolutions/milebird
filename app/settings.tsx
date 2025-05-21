@@ -1,4 +1,3 @@
-// SettingsScreen.tsx
 import { useEffect, useState } from "react";
 import {
   View,
@@ -45,6 +44,7 @@ const SectionTitle = ({ icon, text }: { icon: string; text: string }) => {
   const iconBackgrounds: Record<string, string> = {
     "speedometer-outline": "#fcd34d",
     "contrast-outline": "#c4b5fd",
+    "locate-outline": "#bfdbfe",
   };
 
   return (
@@ -64,11 +64,7 @@ const SectionTitle = ({ icon, text }: { icon: string; text: string }) => {
           elevation: 3,
         }}
       >
-        <Ionicons
-          name={icon as any}
-          size={16}
-          color={isDark ? "#1f2937" : "#1f2937"}
-        />
+        <Ionicons name={icon as any} size={16} color="#1f2937" />
       </View>
       <Text
         style={{
@@ -117,16 +113,18 @@ export default function SettingsScreen() {
 
         <Text
           style={{
-            fontSize: 24,
-            fontWeight: "bold",
+            fontSize: 26,
+            fontWeight: "800",
             color: isDark ? "#fff" : "#2C3E50",
             marginBottom: 24,
             textAlign: "center",
+            letterSpacing: 0.5,
           }}
         >
           Settings
         </Text>
 
+        {/* 2025 IRS Rates */}
         <FormSection>
           <SectionTitle icon="speedometer-outline" text="2025 Mileage Rates" />
           {[
@@ -165,6 +163,7 @@ export default function SettingsScreen() {
           ))}
         </FormSection>
 
+        {/* Theme Toggle */}
         <FormSection>
           <SectionTitle icon="contrast-outline" text="Display Options" />
           <Pressable
@@ -177,7 +176,11 @@ export default function SettingsScreen() {
             }}
           >
             <Text
-              style={{ fontSize: 16, color: isDark ? "#e5e5ea" : "#1c1c1e" }}
+              style={{
+                fontSize: 16,
+                fontWeight: "500",
+                color: isDark ? "#e5e5ea" : "#1c1c1e",
+              }}
             >
               Toggle Dark Mode
             </Text>
@@ -198,6 +201,7 @@ export default function SettingsScreen() {
           </Pressable>
         </FormSection>
 
+        {/* Units */}
         <FormSection>
           <SectionTitle icon="locate-outline" text="Distance Unit" />
           <View style={{ flexDirection: "row", gap: 8 }}>
@@ -228,6 +232,7 @@ export default function SettingsScreen() {
           </View>
         </FormSection>
 
+        {/* Actions */}
         <FormSection>
           <Pressable
             onPress={saveSettings}
@@ -242,7 +247,6 @@ export default function SettingsScreen() {
               Save Settings
             </Text>
           </Pressable>
-
           <Pressable
             onPress={() => router.replace("/home")}
             style={{ paddingVertical: 16, alignItems: "center" }}

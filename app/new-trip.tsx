@@ -1,4 +1,3 @@
-// NewTrip.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   View,
@@ -60,11 +59,20 @@ export default function NewTrip() {
   );
 
   const tripTypeOptions = [
-    { label: "Business (70¢/mi)", value: "business" },
-    { label: "Medical (21¢/mi)", value: "medical" },
-    { label: "Moving (Military, 21¢/mi)", value: "moving" },
-    { label: "Charitable (14¢/mi)", value: "charitable" },
+    { label: "Business", value: "business" },
+    { label: "Medical", value: "medical" },
+    { label: "Moving", value: "moving" },
+    { label: "Charitable", value: "charitable" },
   ];
+
+  const iconBackgrounds: Record<string, string> = {
+    location: "#fde68a",
+    car: "#fcd34d",
+    speedometer: "#bfdbfe",
+    time: "#c4b5fd",
+    pricetag: "#d1fae5",
+    walk: "#d1fae5",
+  };
 
   const milesDriven = () => {
     const startVal = parseFloat(startOdometer);
@@ -134,48 +142,38 @@ export default function NewTrip() {
     });
   };
 
-  const SectionTitle = ({ icon, text }: { icon: string; text: string }) => {
-    const iconBackgrounds: Record<string, string> = {
-      "location-outline": "#fde68a",
-      "car-outline": "#fcd34d",
-      "speedometer-outline": "#bfdbfe",
-      "time-outline": "#c4b5fd",
-      "pricetag-outline": "#d1fae5",
-    };
-
-    return (
+  const SectionTitle = ({ icon, text }: { icon: string; text: string }) => (
+    <View
+      style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+    >
       <View
-        style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+        style={{
+          backgroundColor: iconBackgrounds[icon] || "#e5e7eb",
+          borderRadius: 999,
+          padding: 10,
+          marginRight: 12,
+          shadowColor: "#000",
+          shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 3,
+        }}
       >
-        <View
-          style={{
-            backgroundColor: iconBackgrounds[icon] || "#e5e7eb",
-            borderRadius: 999,
-            padding: 10,
-            marginRight: 12,
-            shadowColor: "#000",
-            shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
-            shadowRadius: 6,
-            shadowOffset: { width: 0, height: 2 },
-            elevation: 3,
-          }}
-        >
-          <Ionicons name={icon as any} size={16} color="#1f2937" />
-        </View>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: "600",
-            color: isDark ? "#e5e5ea" : "#374151",
-            textTransform: "uppercase",
-            letterSpacing: 0.5,
-          }}
-        >
-          {text}
-        </Text>
+        <Ionicons name={icon as any} size={18} color="#1f2937" />
       </View>
-    );
-  };
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: "600",
+          color: isDark ? "#e5e5ea" : "#374151",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+        }}
+      >
+        {text}
+      </Text>
+    </View>
+  );
 
   return (
     <ScrollView
@@ -186,24 +184,23 @@ export default function NewTrip() {
       }}
     >
       <HeaderLogo isDark={isDark} />
-
       <View style={{ alignItems: "center" }}>
         <Text
           style={{
-            fontSize: 24,
-            fontWeight: "bold",
+            fontSize: 26,
+            fontWeight: "800",
             color: isDark ? "#ffffff" : "#2C3E50",
             marginBottom: 24,
             textAlign: "center",
+            letterSpacing: 0.5,
           }}
         >
           Log New Trip
         </Text>
       </View>
 
-      {/* Where & Why */}
       <View style={sectionBoxStyle(isDark)}>
-        <SectionTitle icon="location-outline" text="Where & Why" />
+        <SectionTitle icon="location" text="Where & Why" />
         <FormField
           label="Starting Location"
           value={start}
@@ -227,9 +224,8 @@ export default function NewTrip() {
         />
       </View>
 
-      {/* Vehicle */}
       <View style={sectionBoxStyle(isDark)}>
-        <SectionTitle icon="car-outline" text="Vehicle" />
+        <SectionTitle icon="car" text="Vehicle" />
         <FormSelectField
           label="Vehicle"
           selectedValue={vehicle}
@@ -240,9 +236,8 @@ export default function NewTrip() {
         />
       </View>
 
-      {/* Trip Type */}
       <View style={sectionBoxStyle(isDark)}>
-        <SectionTitle icon="pricetag-outline" text="Trip Type" />
+        <SectionTitle icon="pricetag" text="Trip Type" />
         <FormSelectField
           label="Trip Type"
           selectedValue={tripType}
@@ -253,9 +248,8 @@ export default function NewTrip() {
         />
       </View>
 
-      {/* Odometer */}
       <View style={sectionBoxStyle(isDark)}>
-        <SectionTitle icon="speedometer-outline" text="Odometer" />
+        <SectionTitle icon="speedometer" text="Odometer" />
         <FormField
           label="Starting Odometer"
           value={startOdometer}
@@ -276,9 +270,8 @@ export default function NewTrip() {
         />
       </View>
 
-      {/* Timing */}
       <View style={sectionBoxStyle(isDark)}>
-        <SectionTitle icon="time-outline" text="Timing" />
+        <SectionTitle icon="time" text="Timing" />
         <DateTimeField
           label="Start Date/Time"
           value={startTime}
@@ -293,7 +286,6 @@ export default function NewTrip() {
         />
       </View>
 
-      {/* Summary */}
       <View
         style={{
           flexDirection: "row",
@@ -302,12 +294,21 @@ export default function NewTrip() {
           paddingVertical: 12,
         }}
       >
-        <Ionicons
-          name="walk-outline"
-          size={18}
-          color={isDark ? "#fcd34d" : "#2C3E50"}
-          style={{ marginRight: 6 }}
-        />
+        <View
+          style={{
+            backgroundColor: iconBackgrounds["walk"],
+            borderRadius: 999,
+            padding: 10,
+            marginRight: 12,
+            shadowColor: "#000",
+            shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 3,
+          }}
+        >
+          <Ionicons name="walk" size={18} color="#1f2937" />
+        </View>
         <Text
           style={{
             fontSize: 16,
@@ -319,7 +320,6 @@ export default function NewTrip() {
         </Text>
       </View>
 
-      {/* Actions */}
       <View style={sectionBoxStyle(isDark)}>
         <Pressable
           onPress={saveTrip}

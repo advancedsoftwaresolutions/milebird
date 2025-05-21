@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -37,6 +37,13 @@ const IRS_RATES: Record<string, number> = {
   Medical: 0.21,
   Moving: 0.21,
   Charitable: 0.14,
+};
+
+const ICON_COLORS: Record<string, string> = {
+  business: "#fde68a",
+  medical: "#bfdbfe",
+  moving: "#c4b5fd",
+  charitable: "#d1fae5",
 };
 
 export default function HistoryScreen() {
@@ -84,7 +91,6 @@ export default function HistoryScreen() {
   };
 
   const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
-
   const formatDateTime = (date: string) => new Date(date).toLocaleString();
 
   const exportCSV = async (year: string, trips: Trip[]) => {
@@ -142,6 +148,7 @@ export default function HistoryScreen() {
     const anim = useRef(new Animated.Value(0)).current;
     const rate = getRateForType(trip.tripType);
     const deduction = parseFloat(trip.miles) * rate || 0;
+    const bgColor = ICON_COLORS[trip.tripType?.toLowerCase() ?? "business"];
 
     const handlePress = () => {
       if (Platform.OS !== "web") Haptics.selectionAsync();
@@ -178,7 +185,7 @@ export default function HistoryScreen() {
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <View
             style={{
-              backgroundColor: "#d1fae5",
+              backgroundColor: bgColor,
               borderRadius: 999,
               padding: 10,
               marginRight: 16,
@@ -249,11 +256,12 @@ export default function HistoryScreen() {
         <HeaderLogo />
         <Text
           style={{
-            fontSize: 24,
-            fontWeight: "bold",
+            fontSize: 26,
+            fontWeight: "800",
             color: isDark ? "#fff" : "#2C3E50",
             marginBottom: 24,
             textAlign: "center",
+            letterSpacing: 0.5,
           }}
         >
           Trip History
@@ -293,6 +301,10 @@ export default function HistoryScreen() {
                     borderWidth: 1,
                     borderColor: isDark ? "#2c2c2e" : "#2C3E50",
                     overflow: "hidden",
+                    shadowColor: "#000",
+                    shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
+                    shadowRadius: 4,
+                    shadowOffset: { width: 0, height: 1 },
                   }}
                 >
                   {yearTrips.map((trip) => (
