@@ -1,4 +1,4 @@
-package com.frankcamp.milebird
+package com.frankcamp.milemonkey
 
 import android.os.Build
 import android.os.Bundle

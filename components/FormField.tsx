@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Platform } from "react-native";
-import { useTheme } from "../app/context/ThemeContext";
 
 type Props = {
   label: string;
@@ -10,6 +9,7 @@ type Props = {
   keyboardType?: "default" | "numeric" | "email-address" | "decimal-pad";
   editable?: boolean;
   hasError?: boolean;
+  isDark: boolean; // ✅ passed in from parent
   onFocus?: () => void;
   onBlur?: () => void;
 };
@@ -22,11 +22,10 @@ export default function FormField({
   keyboardType = "default",
   editable = true,
   hasError = false,
+  isDark,
   onFocus,
   onBlur,
 }: Props) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const [isFocused, setIsFocused] = useState(false);
 
   const borderColor = hasError

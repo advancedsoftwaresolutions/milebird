@@ -1,14 +1,15 @@
 import { Image, View, Text } from "react-native";
-import { useTheme } from "../app/context/ThemeContext";
+import React from "react";
 
-export default function HeaderLogo() {
-  const { theme } = useTheme();
+type Props = {
+  isDark: boolean;
+};
 
-  const isDark = theme === "dark";
+function HeaderLogo({ isDark }: Props) {
   return (
     <View
       style={{
-        flexDirection: "row",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         marginTop: 32,
@@ -17,18 +18,19 @@ export default function HeaderLogo() {
     >
       <Image
         source={require("../assets/logo.png")}
-        style={{ width: 70, height: 70, resizeMode: "contain" }}
+        style={{ width: 80, height: 80, marginLeft: 20, resizeMode: "contain" }}
       />
       <Text
         style={{
           fontSize: 28,
           fontWeight: "bold",
-          color: isDark ? "#fff" : "#1c1c1e",
-          marginLeft: 16,
+          color: isDark ? "#EE6C4D" : "#2C3E50",
         }}
       >
-        MileBird
+        Mile Monkey
       </Text>
     </View>
   );
 }
+
+export default React.memo(HeaderLogo); // ✅ optional but recommended

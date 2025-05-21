@@ -1,3 +1,4 @@
+// EditTrip.tsx
 import { useEffect, useState } from "react";
 import {
   View,
@@ -14,6 +15,7 @@ import { useTheme } from "./context/ThemeContext";
 import FormField from "../components/FormField";
 import FormSelectField from "../components/FormSelectField";
 import DateTimeField from "../components/DateTimeField";
+import { Ionicons } from "@expo/vector-icons";
 
 type Trip = {
   id: string;
@@ -21,6 +23,7 @@ type Trip = {
   destination: string;
   purpose: string;
   vehicle: string;
+  tripType?: string;
   startOdometer: string;
   endOdometer: string;
   miles: string;
@@ -28,12 +31,18 @@ type Trip = {
   endDateTime: string;
 };
 
+const tripTypeOptions = [
+  { label: "Business", value: "business" },
+  { label: "Medical", value: "medical" },
+  { label: "Moving", value: "moving" },
+  { label: "Charitable", value: "charitable" },
+];
+
 export default function EditTrip() {
   const router = useRouter();
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const { tripId } = useLocalSearchParams();
-
   const [trip, setTrip] = useState<Trip | null>(null);
   const [vehicleList, setVehicleList] = useState<string[]>([]);
 
@@ -63,7 +72,65 @@ export default function EditTrip() {
 
   const updateTripField = (field: keyof Trip, value: string) => {
     if (!trip) return;
-    setTrip({ ...trip, [field]: value });
+
+    const updated = { ...trip, [field]: value };
+
+    // Recalculate miles if odometer values changed
+    const start = parseFloat(
+      field === "startOdometer" ? value : updated.startOdometer
+    );
+    const end = parseFloat(
+      field === "endOdometer" ? value : updated.endOdometer
+    );
+
+    if (!isNaN(start) && !isNaN(end)) {
+      updated.miles = (end - start).toFixed(1);
+    }
+
+    setTrip(updated);
+  };
+
+  const SectionTitle = ({ icon, text }: { icon: string; text: string }) => {
+    const iconBackgrounds: Record<string, string> = {
+      "location-outline": "#fde68a",
+      "car-outline": "#fcd34d",
+      "speedometer-outline": "#bfdbfe",
+      "time-outline": "#c4b5fd",
+      "pricetag-outline": "#d1fae5",
+    };
+
+    return (
+      <View
+        style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}
+      >
+        <View
+          style={{
+            backgroundColor: iconBackgrounds[icon] || "#e5e7eb",
+            borderRadius: 999,
+            padding: 10,
+            marginRight: 12,
+            shadowColor: "#000",
+            shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
+            shadowRadius: 6,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 3,
+          }}
+        >
+          <Ionicons name={icon as any} size={16} color="#1f2937" />
+        </View>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: isDark ? "#e5e5ea" : "#374151",
+            textTransform: "uppercase",
+            letterSpacing: 0.5,
+          }}
+        >
+          {text}
+        </Text>
+      </View>
+    );
   };
 
   if (!trip) {
@@ -78,7 +145,7 @@ export default function EditTrip() {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: isDark ? "#000" : "#f2f2f7",
+        backgroundColor: isDark ? "#000" : "#F4D35E",
         padding: 24,
       }}
     >
@@ -88,25 +155,18 @@ export default function EditTrip() {
         style={{
           fontSize: 24,
           fontWeight: "bold",
-          color: isDark ? "#fff" : "#1c1c1e",
+          color: isDark ? "#ffffff" : "#2C3E50",
           marginBottom: 24,
+          textAlign: "center",
         }}
       >
         Edit Trip
       </Text>
 
-      <View
-        style={{
-          backgroundColor: isDark ? "#1c1c1e" : "#fff",
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 32,
-          borderWidth: 1,
-          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
-        }}
-      >
+      <View style={sectionBoxStyle(isDark)}>
+        <SectionTitle icon="location-outline" text="Where & Why" />
         <FormField
-          label="Start"
+          label="Starting Location"
           value={trip.start}
           onChangeText={(v) => updateTripField("start", v)}
         />
@@ -120,6 +180,10 @@ export default function EditTrip() {
           value={trip.purpose}
           onChangeText={(v) => updateTripField("purpose", v)}
         />
+      </View>
+
+      <View style={sectionBoxStyle(isDark)}>
+        <SectionTitle icon="car-outline" text="Vehicle" />
         <FormSelectField
           label="Vehicle"
           selectedValue={trip.vehicle}
@@ -128,7 +192,23 @@ export default function EditTrip() {
             { label: "Select Vehicle", value: "" },
             ...vehicleList.map((v) => ({ label: v, value: v })),
           ]}
+          isDark={isDark}
         />
+      </View>
+
+      <View style={sectionBoxStyle(isDark)}>
+        <SectionTitle icon="pricetag-outline" text="Trip Type" />
+        <FormSelectField
+          label="Trip Type"
+          selectedValue={trip.tripType || "business"}
+          onValueChange={(v) => updateTripField("tripType", v)}
+          options={tripTypeOptions}
+          isDark={isDark}
+        />
+      </View>
+
+      <View style={sectionBoxStyle(isDark)}>
+        <SectionTitle icon="speedometer-outline" text="Odometer" />
         <FormField
           label="Start Odometer"
           value={trip.startOdometer}
@@ -139,31 +219,71 @@ export default function EditTrip() {
           value={trip.endOdometer}
           onChangeText={(v) => updateTripField("endOdometer", v)}
         />
+      </View>
+
+      <View style={sectionBoxStyle(isDark)}>
+        <SectionTitle icon="time-outline" text="Timing" />
         <DateTimeField
-          label="Start Time"
+          label="Start Date/Time"
           value={new Date(trip.startDateTime)}
           onChange={(d) => updateTripField("startDateTime", d.toISOString())}
+          isDark={isDark}
         />
         <DateTimeField
-          label="End Time"
+          label="End Date/Time"
           value={new Date(trip.endDateTime)}
           onChange={(d) => updateTripField("endDateTime", d.toISOString())}
+          isDark={isDark}
         />
       </View>
 
-      <Pressable
-        onPress={saveChanges}
-        style={{
-          padding: 16,
-          backgroundColor: "#007aff",
-          borderRadius: 12,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
-          Save Changes
-        </Text>
-      </Pressable>
+      <View style={sectionBoxStyle(isDark)}>
+        <Pressable
+          onPress={saveChanges}
+          style={{
+            paddingVertical: 16,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              color: "#007aff",
+            }}
+          >
+            Save Changes
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.replace("/history")}
+          style={{
+            paddingVertical: 16,
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              color: isDark ? "#e5e5ea" : "#6b7280",
+            }}
+          >
+            Cancel
+          </Text>
+        </Pressable>
+      </View>
     </ScrollView>
   );
+}
+
+function sectionBoxStyle(isDark: boolean) {
+  return {
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: isDark ? "#2c2c2e" : "#2C3E50",
+    backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
+  };
 }

@@ -1,20 +1,22 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
-  Alert,
-  TouchableOpacity,
+  Animated,
   Platform,
+  Alert,
+  SafeAreaView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import HeaderLogo from "../components/HeaderLogo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTheme } from "./context/ThemeContext";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { Pencil, Trash2 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import { useTheme } from "./context/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
 
 type Trip = {
   id: string;
@@ -27,6 +29,21 @@ type Trip = {
   miles: string;
   startDateTime: string;
   endDateTime: string;
+  tripType?: string;
+};
+
+const IRS_RATES: Record<string, number> = {
+  Business: 0.7,
+  Medical: 0.21,
+  Moving: 0.21,
+  Charitable: 0.14,
+};
+
+const ICON_COLORS: Record<string, string> = {
+  business: "#fde68a",
+  medical: "#bfdbfe",
+  moving: "#c4b5fd",
+  charitable: "#d1fae5",
 };
 
 export default function HistoryScreen() {
@@ -34,7 +51,6 @@ export default function HistoryScreen() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [irsRate, setIrsRate] = useState<number>(0.655);
 
   useEffect(() => {
     loadTrips();
@@ -42,12 +58,6 @@ export default function HistoryScreen() {
 
   const loadTrips = async () => {
     const data = await AsyncStorage.getItem("trips");
-    const savedRate = await AsyncStorage.getItem("irsRate");
-    if (savedRate) {
-      const rate = parseFloat(savedRate);
-      if (!isNaN(rate)) setIrsRate(rate);
-    }
-
     if (data) {
       let parsed: Trip[] = JSON.parse(data);
       parsed = parsed.map((t) => ({
@@ -61,36 +71,6 @@ export default function HistoryScreen() {
     }
   };
 
-  const deleteTrip = async (id: string) => {
-    const existing = await AsyncStorage.getItem("trips");
-    if (!existing) return;
-
-    const parsed: Trip[] = JSON.parse(existing);
-    const updated = parsed.filter((t) => String(t.id) !== String(id));
-    await AsyncStorage.setItem("trips", JSON.stringify(updated));
-    setTrips(updated);
-  };
-
-  const confirmDelete = useCallback((id: string) => {
-    Alert.alert("Delete Trip", "Are you sure you want to delete this trip?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          console.log("Deleting trip with ID:", id); // ✅ logs
-          const stored = await AsyncStorage.getItem("trips");
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            const updated = parsed.filter((t: Trip) => t.id !== id);
-            await AsyncStorage.setItem("trips", JSON.stringify(updated));
-            setTrips(updated);
-          }
-        },
-      },
-    ]);
-  }, []);
-
   const groupByYear = (trips: Trip[]) => {
     const map: { [year: string]: Trip[] } = {};
     trips.forEach((trip) => {
@@ -101,9 +81,16 @@ export default function HistoryScreen() {
     return map;
   };
 
-  const formatCurrency = (amount: number) =>
-    `$${amount.toFixed(2).toLocaleString()}`;
+  const getRateForType = (type?: string): number => {
+    const normalized = type?.toLowerCase() ?? "";
+    if (normalized === "business") return IRS_RATES["Business"];
+    if (normalized === "medical") return IRS_RATES["Medical"];
+    if (normalized === "moving") return IRS_RATES["Moving"];
+    if (normalized === "charitable") return IRS_RATES["Charitable"];
+    return IRS_RATES["Business"];
+  };
 
+  const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
   const formatDateTime = (date: string) => new Date(date).toLocaleString();
 
   const exportCSV = async (year: string, trips: Trip[]) => {
@@ -117,11 +104,13 @@ export default function HistoryScreen() {
       "Miles",
       "Start Time",
       "End Time",
+      "Trip Type",
       "Deduction",
     ];
     const rows = trips.map((trip) => {
       const miles = parseFloat(trip.miles);
-      const deduction = isNaN(miles) ? 0 : miles * irsRate;
+      const rate = getRateForType(trip.tripType);
+      const deduction = isNaN(miles) ? 0 : miles * rate;
       return [
         trip.start,
         trip.destination,
@@ -132,28 +121,147 @@ export default function HistoryScreen() {
         trip.miles,
         trip.startDateTime,
         trip.endDateTime,
+        trip.tripType || "Business",
         deduction.toFixed(2),
       ].join(",");
     });
-
     const csv = [headers.join(","), ...rows].join("\n");
-    const fileUri = FileSystem.documentDirectory + `trips_${year}.csv`;
-    await FileSystem.writeAsStringAsync(fileUri, csv);
-    await Sharing.shareAsync(fileUri);
+
+    if (Platform.OS === "web") {
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `trips_${year}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const fileUri = FileSystem.documentDirectory + `trips_${year}.csv`;
+      await FileSystem.writeAsStringAsync(fileUri, csv);
+      await Sharing.shareAsync(fileUri);
+    }
   };
 
   const tripsByYear = groupByYear(trips);
 
+  const TripRow = ({ trip }: { trip: Trip }) => {
+    const anim = useRef(new Animated.Value(0)).current;
+    const rate = getRateForType(trip.tripType);
+    const deduction = parseFloat(trip.miles) * rate || 0;
+    const bgColor = ICON_COLORS[trip.tripType?.toLowerCase() ?? "business"];
+
+    const handlePress = () => {
+      if (Platform.OS !== "web") Haptics.selectionAsync();
+      Animated.sequence([
+        Animated.timing(anim, {
+          toValue: 6,
+          duration: 80,
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim, {
+          toValue: 0,
+          duration: 80,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        router.push(`/edit-trip?tripId=${trip.id}`);
+      });
+    };
+
+    return (
+      <Pressable
+        onPress={handlePress}
+        android_ripple={{ color: isDark ? "#333" : "#ccc" }}
+        style={{
+          paddingVertical: 16,
+          paddingHorizontal: 20,
+          borderBottomWidth: 1,
+          borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              backgroundColor: bgColor,
+              borderRadius: 999,
+              padding: 10,
+              marginRight: 16,
+              shadowColor: "#000",
+              shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.3,
+              shadowRadius: 6,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 3,
+            }}
+          >
+            <Ionicons name="car" size={18} color="#1f2937" />
+          </View>
+
+          <View>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: isDark ? "#fff" : "#111827",
+              }}
+            >
+              {trip.start} → {trip.destination}
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: isDark ? "#aaa" : "#6b7280",
+              }}
+            >
+              {formatDateTime(trip.startDateTime)}
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: isDark ? "#ccc" : "#374151",
+              }}
+            >
+              {trip.miles} mi · {trip.tripType || "Business"} · {trip.vehicle}
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#22c55e",
+                fontWeight: "bold",
+              }}
+            >
+              Deduction: {formatCurrency(deduction)}
+            </Text>
+          </View>
+        </View>
+
+        <Animated.View style={{ transform: [{ translateX: anim }] }}>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={isDark ? "#9fa1a6" : "#2C3E50"}
+          />
+        </Animated.View>
+      </Pressable>
+    );
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? "#000" : "#f2f2f7" }}>
-      <HeaderLogo />
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: isDark ? "#000" : "#F4D35E" }}
+    >
       <ScrollView style={{ paddingHorizontal: 24, paddingBottom: 32 }}>
+        <HeaderLogo />
         <Text
           style={{
-            fontSize: 24,
-            fontWeight: "bold",
-            color: isDark ? "#fff" : "#1c1c1e",
+            fontSize: 26,
+            fontWeight: "800",
+            color: isDark ? "#fff" : "#2C3E50",
             marginBottom: 24,
+            textAlign: "center",
+            letterSpacing: 0.5,
           }}
         >
           Trip History
@@ -164,139 +272,50 @@ export default function HistoryScreen() {
           .map(([year, yearTrips]) => {
             const total = yearTrips.reduce((sum, t) => {
               const m = parseFloat(t.miles);
-              return sum + (isNaN(m) ? 0 : m * irsRate);
+              const rate = getRateForType(t.tripType);
+              return sum + (isNaN(m) ? 0 : m * rate);
             }, 0);
 
             return (
-              <View key={year}>
+              <View key={year} style={{ marginBottom: 32 }}>
                 <Text
                   style={{
-                    fontSize: 16,
-                    fontWeight: "bold",
-                    color: isDark ? "#fff" : "#111827",
-                    marginBottom: 12,
+                    fontSize: 13,
+                    color: isDark ? "#8e8e93" : "#2C3E50",
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
                   }}
                 >
-                  {year} — Total Deduction:{" "}
-                  <Text style={{ color: "#22c55e" }}>
+                  {year} — Total Deduction:
+                  <Text style={{ color: "#22c55e", fontWeight: "600" }}>
+                    {" "}
                     {formatCurrency(total)}
                   </Text>
                 </Text>
 
                 <View
                   style={{
-                    backgroundColor: isDark ? "#1c1c1e" : "#fff",
+                    backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
                     borderRadius: 12,
-                    overflow: "hidden",
-                    marginBottom: 16,
                     borderWidth: 1,
-                    borderColor: isDark ? "#2c2c2e" : "#e5e7eb",
+                    borderColor: isDark ? "#2c2c2e" : "#2C3E50",
+                    overflow: "hidden",
+                    shadowColor: "#000",
+                    shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
+                    shadowRadius: 4,
+                    shadowOffset: { width: 0, height: 1 },
                   }}
                 >
-                  {yearTrips.map((trip, idx) => {
-                    const deduction = parseFloat(trip.miles) * irsRate || 0;
+                  {yearTrips.map((trip) => (
+                    <TripRow key={trip.id} trip={trip} />
+                  ))}
 
-                    return (
-                      <View
-                        key={trip.id}
-                        style={{
-                          position: "relative",
-                          paddingVertical: 12,
-                          paddingHorizontal: 16,
-                          borderBottomWidth:
-                            idx !== yearTrips.length - 1 ? 1 : 0,
-                          borderBottomColor: isDark ? "#2c2c2e" : "#e5e7eb",
-                        }}
-                      >
-                        {/* Edit button */}
-                        <TouchableOpacity
-                          onPress={() =>
-                            router.push(`/edit-trip?tripId=${trip.id}`)
-                          }
-                          style={{
-                            position: "absolute",
-                            top: 8,
-                            right: 42,
-                            zIndex: 10,
-                            backgroundColor: isDark ? "#111" : "#eee",
-                            padding: 6,
-                            borderRadius: 20,
-                          }}
-                        >
-                          <Pencil color="#3b82f6" size={18} />
-                        </TouchableOpacity>
-
-                        {/* Delete Button */}
-                        <TouchableOpacity
-                          onPress={() => deleteTrip(trip.id)}
-                          style={{
-                            position: "absolute",
-                            top: 8,
-                            right: 8,
-                            zIndex: 10,
-                            backgroundColor: isDark ? "#111" : "#eee",
-                            padding: 6,
-                            borderRadius: 20,
-                          }}
-                        >
-                          <Trash2 color="#ef4444" size={18} />
-                        </TouchableOpacity>
-
-                        {/* Trip Content */}
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontWeight: "600",
-                            color: isDark ? "#fff" : "#111827",
-                            marginBottom: 4,
-                          }}
-                        >
-                          {trip.start} → {trip.destination}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            color: isDark ? "#aaa" : "#6b7280",
-                            marginBottom: 4,
-                          }}
-                        >
-                          {formatDateTime(trip.startDateTime)}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: isDark ? "#ccc" : "#374151",
-                          }}
-                        >
-                          Miles: {trip.miles} • Purpose: {trip.purpose}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: isDark ? "#ccc" : "#374151",
-                          }}
-                        >
-                          Vehicle: {trip.vehicle} • Odometer:{" "}
-                          {trip.startOdometer} → {trip.endOdometer}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: "#22c55e",
-                            fontWeight: "bold",
-                            marginTop: 4,
-                          }}
-                        >
-                          Deduction: {formatCurrency(deduction)}
-                        </Text>
-                      </View>
-                    );
-                  })}
                   <Pressable
                     onPress={() => exportCSV(year, yearTrips)}
                     style={{
-                      padding: 14,
                       backgroundColor: "#16a34a",
+                      paddingVertical: 14,
                       alignItems: "center",
                     }}
                   >
@@ -308,25 +327,37 @@ export default function HistoryScreen() {
               </View>
             );
           })}
-        <Pressable
-          onPress={() => router.replace("/home")}
+
+        <View
           style={{
-            paddingVertical: 16,
-            alignItems: "center",
-            justifyContent: "center",
+            padding: 16,
+            backgroundColor: isDark ? "#1c1c1e" : "#ffffff",
+            borderRadius: 12,
+            overflow: "hidden",
+            borderWidth: 1,
+            borderColor: isDark ? "#2c2c2e" : "#2C3E50",
+            shadowColor: "#000",
+            shadowOpacity: Platform.OS === "ios" ? 0.05 : 0,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 1 },
           }}
         >
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "600",
-              color: "#007aff",
-            }}
+          <Pressable
+            onPress={() => router.replace("/home")}
+            style={{ padding: 16, alignItems: "center" }}
           >
-            Back to Home
-          </Text>
-        </Pressable>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "600",
+                color: isDark ? "#e5e5ea" : "#6b7280",
+              }}
+            >
+              Back to Home
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
